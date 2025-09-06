@@ -1,0 +1,35 @@
+# Grafana configuration with automatic datasource provisioning
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+    datasources:
+      # Prometheus datasource
+      - name: Prometheus
+        type: prometheus
+        access: proxy
+        url: http://prometheus-server
+        isDefault: true
+        editable: true
+        jsonData:
+          timeInterval: "5s"
+          queryTimeout: "300s"
+          httpMethod: "POST"
+      
+      # Loki datasource  
+      - name: Loki
+        type: loki
+        access: proxy
+        url: http://loki:3100
+        editable: true
+        jsonData:
+          maxLines: 1000
+          derivedFields:
+            - datasourceUid: prometheus
+              matcherRegex: "traceID=(\\w+)"
+              name: TraceID
+              url: "$${__value.raw}"
+
+# Enable persistence for Grafana data
+persistence:
+  enabled: true
+  size: 10Gi
